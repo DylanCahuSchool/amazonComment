@@ -16,10 +16,9 @@ from generate_response import generer_reponse
 client = TestClient(app)
 
 def test_generer_reponse_mock():
-    import os
-    os.environ["SKIP_MODEL_DOWNLOAD"] = "true"
-    result = generer_reponse("Bonjour")
-    assert "[MOCK]" in result
+    # Par défaut, les modèles IA sont désactivés (mode fallback)
+    result = generer_reponse("Bonjour", "positif")
+    assert "Merci beaucoup" in result
 
 def test_api_health():
     """Test que l'API démarre correctement"""
@@ -28,9 +27,6 @@ def test_api_health():
 
 def test_analyse_endpoint():
     """Test de l'endpoint /analyse"""
-    import os
-    os.environ["SKIP_MODEL_DOWNLOAD"] = "true"
-    
     test_data = {"texte": "Ce produit est fantastique!"}
     response = client.post("/analyse", json=test_data)
     
@@ -38,6 +34,8 @@ def test_analyse_endpoint():
     data = response.json()
     assert "sentiment" in data
     assert "reponse" in data
+    # En mode fallback, on devrait avoir une réponse prédéfinie
+    assert len(data["reponse"]) > 10
 
 if __name__ == "__main__":
     # Exécuter les tests

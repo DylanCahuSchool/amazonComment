@@ -3,8 +3,9 @@
 
 import os
 
-# Détecte si on veut éviter de charger le vrai modèle (mode tests CI)
-SKIP_MODEL = os.environ.get("SKIP_MODEL_DOWNLOAD", "false").lower() in ("1", "true", "yes")
+# Par défaut, on utilise le mode fallback (plus sûr pour le déploiement)
+# Pour activer les modèles IA, définir ENABLE_AI_MODEL=true
+SKIP_MODEL = os.environ.get("ENABLE_AI_MODEL", "false").lower() not in ("1", "true", "yes")
 
 # Variables globales pour le modèle
 tokenizer = None
@@ -65,9 +66,13 @@ def load_model():
         SKIP_MODEL = True
         return False
 
-# Tentative de chargement au démarrage
+# Chargement des modèles seulement si explicitement demandé
+# Par défaut, on utilise les réponses prédéfinies (plus rapide et stable)
 if not SKIP_MODEL:
+    print("🤖 Mode IA activé - Chargement des modèles...")
     load_model()
+else:
+    print("💬 Mode fallback activé - Utilisation des réponses prédéfinies")
 
 def generer_reponse(texte, sentiment="negative"):
     """
