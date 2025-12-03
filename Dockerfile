@@ -4,11 +4,15 @@ FROM python:3.10-slim
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Copier le fichier requirements.txt
+# Forcer le mode fallback (pas de modèles IA lourds)
+ENV ENABLE_AI_MODEL=false
+
+# Copier les fichiers requirements
+COPY requirements-light.txt requirements-light.txt
 COPY requirements.txt requirements.txt
 
-# Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt
+# Utiliser la version légère pour le déploiement (évite les problèmes d'espace)
+RUN pip install --no-cache-dir -r requirements-light.txt
 
 # Copier tout le code de l'application
 COPY . .
