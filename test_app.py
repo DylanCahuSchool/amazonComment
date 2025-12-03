@@ -7,11 +7,41 @@ Original file is located at
     https://colab.research.google.com/drive/1o-3Dfb9mwjn4azR2-uPDx7ibB1vPo5z0
 """
 
+import pytest
+import requests
+from fastapi.testclient import TestClient
+from main import app
 from generate_response import generer_reponse
 
+client = TestClient(app)
 
 def test_generer_reponse_mock():
     import os
     os.environ["SKIP_MODEL_DOWNLOAD"] = "true"
     result = generer_reponse("Bonjour")
     assert "[MOCK]" in result
+
+def test_api_health():
+    """Test que l'API démarre correctement"""
+    response = client.get("/docs")
+    assert response.status_code == 200
+
+def test_analyse_endpoint():
+    """Test de l'endpoint /analyse"""
+    import os
+    os.environ["SKIP_MODEL_DOWNLOAD"] = "true"
+    
+    test_data = {"texte": "Ce produit est fantastique!"}
+    response = client.post("/analyse", json=test_data)
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "sentiment" in data
+    assert "reponse" in data
+
+if __name__ == "__main__":
+    # Exécuter les tests
+    test_generer_reponse_mock()
+    test_api_health()
+    test_analyse_endpoint()
+    print("✅ Tous les tests sont passés!")
