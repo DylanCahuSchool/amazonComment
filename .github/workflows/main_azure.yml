@@ -58,6 +58,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'VOTRE_NOM_APP_SERVICE'  # À remplacer par le nom de votre App Service
+          app-name: 'amazoncomment-api'  # Remplacez par le nom exact de votre App Service
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
