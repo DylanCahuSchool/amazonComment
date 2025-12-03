@@ -7,39 +7,68 @@ Original file is located at
     https://colab.research.google.com/drive/1ScjNkyv_sOyjD0mxb-N9b_RG_9J6a3DN
 """
 
-import pandas as pd
 import re
 import string
-import emoji
 import nltk
 from nltk.corpus import stopwords
-from datasets import load_dataset
 
 
-# Télécharger stopwords
-nltk.download('stopwords')
-
-
-stopwords_fr = set(stopwords.words("french"))
+# Télécharger stopwords avec gestion d'erreur
+try:
+    nltk.download('stopwords', quiet=True)
+    stopwords_fr = set(stopwords.words("french"))
+except Exception as e:
+    print(f"Attention: Impossible de charger stopwords - {e}")
+    # Liste minimale de stopwords français
+    stopwords_fr = {
+        'le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir', 'que', 'pour',
+        'dans', 'ce', 'son', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'plus',
+        'par', 'grand', 'en', 'être', 'et', 'en', 'avoir', 'que', 'pour', 'dans',
+        'les', 'des', 'du', 'la', 'au', 'aux', 'ces', 'ses', 'nos', 'vos', 'leurs'
+    }
 
 
 def clean_text(text):
+    """Nettoie le texte d'entrée en supprimant les éléments indésirables"""
     text = str(text).lower()
 
     # Retirer URL
     text = re.sub(r"http\S+|www\S+", "", text)
 
-    # Retirer emojis
-    text = emoji.replace_emoji(text, replace="")
+    # Retirer emojis avec regex simple (sans module emoji)
+    # Pattern pour détecter les emojis courants
+    emoji_pattern = re.compile(
+        "["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symboles & pictographes
+        u"\U0001F680-\U0001F6FF"  # transport & map
+        u"\U0001F1E0-\U0001F1FF"  # flags
+        u"\U00002700-\U000027BF"  # dingbats
+        u"\U0001f926-\U0001f937"
+        u"\U00010000-\U0010ffff"
+        u"\u2640-\u2642" 
+        u"\u2600-\u2B55"
+        u"\u200d"
+        u"\u23cf"
+        u"\u23e9"
+        u"\u231a"
+        u"\ufe0f"  # diacritiques
+        u"\u3030"
+        "]+", flags=re.UNICODE)
+    text = emoji_pattern.sub(r'', text)
 
     # Retirer ponctuation
     text = text.translate(str.maketrans("", "", string.punctuation))
 
-    # Garder lettres + chiffres
+    # Garder lettres + chiffres (caractères français inclus)
     text = re.sub(r"[^a-zàâäéèêëîïôöùûüç0-9\s]", " ", text)
 
-    # Retirer stopwords
-    text = " ".join([w for w in text.split() if w not in stopwords_fr])
+    # Retirer stopwords (avec gestion d'erreur)
+    try:
+        text = " ".join([w for w in text.split() if w not in stopwords_fr])
+    except NameError:
+        # Si stopwords_fr n'est pas défini, on nettoie quand même
+        pass
 
     # Nettoyer espaces
     text = re.sub(r"\s+", " ", text).strip()
@@ -56,11 +85,22 @@ def label_sentiment(label):
 
 
 def load_reviews(limit=1000):
-    dataset = load_dataset(
-        "SetFit/amazon_reviews_multi_fr",
-        split=f"train[:{limit}]"
-    )
-    df = pd.DataFrame(dataset)
-    df["texte_clean"] = df["text"].apply(clean_text)
-    df["sentiment"] = df["label"].apply(label_sentiment)
-    return df
+    """
+    Charge des avis depuis un dataset (nécessite datasets et pandas)
+    Cette fonction est optionnelle pour l'API
+    """
+    try:
+        import pandas as pd
+        from datasets import load_dataset
+        
+        dataset = load_dataset(
+            "SetFit/amazon_reviews_multi_fr",
+            split=f"train[:{limit}]"
+        )
+        df = pd.DataFrame(dataset)
+        df["texte_clean"] = df["text"].apply(clean_text)
+        df["sentiment"] = df["label"].apply(label_sentiment)
+        return df
+    except ImportError as e:
+        print(f"Modules 'datasets' ou 'pandas' non disponibles - {e}")
+        return []  # Liste vide
