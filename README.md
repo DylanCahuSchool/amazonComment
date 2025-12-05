@@ -14,6 +14,31 @@ API FastAPI pour analyser les avis clients et générer des réponses automatiqu
 ENABLE_AI_MODEL=false  # Mode fallback rapide (recommandé)
 ```
 
+## 🖥️ Développement Local
+
+### Installation des dépendances :
+```bash
+pip install -r requirements.txt
+pip install uvicorn  # Serveur ASGI pour FastAPI
+```
+
+### Lancement du serveur de développement :
+```bash
+# Option 1: Avec uvicorn (recommandé)
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Option 2: Script Python direct
+python main.py
+```
+
+### 🌐 Interface Web
+Accédez à l'interface : `http://localhost:8000`
+
+**Uvicorn** est le serveur web ASGI qui fait tourner votre application FastAPI :
+- 🚀 **Performance** : Ultra-rapide avec support async/await
+- 🔄 **Hot reload** : Redémarre automatiquement lors des modifications
+- 🌍 **Production ready** : Utilisé en production via Gunicorn
+
 ## 📋 Fonctionnalités
 
 ### Endpoint principal : `POST /analyse`

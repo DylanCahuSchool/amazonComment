@@ -6,11 +6,13 @@ Architecture moderne avec configuration centralisée
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 import uvicorn
 
-from config.settings import APIConfig
+from config.settings import APIConfig, AIConfig, DeploymentConfig
 from generate_response import generer_reponse
 from data_processing import clean_text, analyze_sentiment_simple, label_sentiment, process_review
 
@@ -31,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serveur de fichiers statiques pour l'interface web
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Modèles Pydantic pour la validation des données
 class AnalyseRequest(BaseModel):
@@ -65,9 +70,14 @@ class HealthResponse(BaseModel):
 
 # Endpoints de l'API
 
-@app.get("/", summary="Page d'accueil")
+@app.get("/", summary="Interface web")
 async def root():
-    """Point d'entrée principal de l'API"""
+    """Serve the web interface"""
+    return FileResponse("static/index.html")
+
+@app.get("/api", summary="Informations API")
+async def api_info():
+    """Point d'entrée API avec informations"""
     return {
         "message": f"Bienvenue sur {APIConfig.TITLE}",
         "documentation": "/docs",
