@@ -28,7 +28,7 @@ jobs:
     - name: Run tests
       run: |
         echo "🧪 Exécution des tests..."
-        python test_simple.py
+        python tests/test_complete.py
         echo "✅ Tests passés avec succès!"
     
     - name: Test Docker build
