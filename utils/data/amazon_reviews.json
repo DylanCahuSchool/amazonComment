@@ -1,0 +1,82 @@
+[
+  {
+    "review_text": "Produit absolument fantastique ! Très satisfait de mon achat, je le recommande vivement à tous.",
+    "rating": 5,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Excellente qualité, livraison rapide. Conforme à mes attentes, très bon rapport qualité-prix.",
+    "rating": 5,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Très bon produit, bien emballé. Service client réactif. Je recommande cette marque.",
+    "rating": 4,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Satisfait de cet achat. Produit solide et bien fini. Livraison dans les temps.",
+    "rating": 4,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Super produit ! Exactement ce que je cherchais. Merci pour la rapidité d'expédition.",
+    "rating": 5,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Bonne qualité, conforme à la description. Prix correct pour ce type de produit.",
+    "rating": 4,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Très déçu de cet achat. Qualité médiocre, ne correspond pas à la description.",
+    "rating": 2,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Produit défectueux dès la première utilisation. Service client non réactif. À éviter.",
+    "rating": 1,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Mauvaise qualité, matériaux cheap. Photos trompeuses sur le site. Déçu.",
+    "rating": 1,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Pas terrible du tout. Livraison en retard et produit abîmé. Demande de remboursement.",
+    "rating": 2,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "N'achetez pas ce produit ! Arnaque totale, rien ne fonctionne comme annoncé.",
+    "rating": 1,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Qualité décevante pour le prix payé. Attention aux avis bidons, ne vous fiez pas.",
+    "rating": 2,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Produit correct, sans plus. Fait le travail mais rien d'exceptionnel. Prix moyen.",
+    "rating": 3,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Moyen, la qualité pourrait être mieux. Acceptable pour le prix mais sans plus.",
+    "rating": 3,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Ça va, ni bon ni mauvais. Répond aux besoins de base. On trouve mieux ailleurs.",
+    "rating": 3,
+    "source": "synthetic"
+  },
+  {
+    "review_text": "Correct pour dépanner. Qualité moyenne, service client moyen. Rien d'extraordinaire.",
+    "rating": 3,
+    "source": "synthetic"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "model_type": "gpt2",
+  "trained_on": "amazon_reviews",
+  "epochs": 2,
+  "status": "trained_demo",
+  "note": "Version d\u00e9mo - remplacez par un vrai mod\u00e8le entra\u00een\u00e9"
+}

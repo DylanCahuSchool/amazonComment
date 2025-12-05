@@ -1,0 +1,42 @@
+[
+  {
+    "review_text": "Produit absolument fantastique ! Très satisfait de mon achat, je le recommande vivement.",
+    "rating": 5
+  },
+  {
+    "review_text": "Excellente qualité, livraison rapide. Conforme à mes attentes.",
+    "rating": 5
+  },
+  {
+    "review_text": "Très bon produit, bien emballé. Service client réactif.",
+    "rating": 4
+  },
+  {
+    "review_text": "Satisfait de cet achat. Produit solide et bien fini.",
+    "rating": 4
+  },
+  {
+    "review_text": "Très déçu de cet achat. Qualité médiocre, ne correspond pas à la description.",
+    "rating": 2
+  },
+  {
+    "review_text": "Produit défectueux dès la première utilisation. Service client non réactif.",
+    "rating": 1
+  },
+  {
+    "review_text": "Mauvaise qualité, matériaux cheap. Photos trompeuses.",
+    "rating": 1
+  },
+  {
+    "review_text": "Pas terrible du tout. Livraison en retard et produit abîmé.",
+    "rating": 2
+  },
+  {
+    "review_text": "Produit correct, sans plus. Fait le travail mais rien d'exceptionnel.",
+    "rating": 3
+  },
+  {
+    "review_text": "Moyen, la qualité pourrait être mieux. Acceptable pour le prix.",
+    "rating": 3
+  }
+]

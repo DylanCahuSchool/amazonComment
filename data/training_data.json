@@ -1,0 +1,62 @@
+[
+  {
+    "input": "Avis client: Produit absolument fantastique ! Très satisfait de mon achat, je le recommande vivement.",
+    "output": "Merci beaucoup pour votre retour positif ! Nous sommes ravis que le produit vous satisfasse.",
+    "sentiment": "positive",
+    "rating": 5
+  },
+  {
+    "input": "Avis client: Excellente qualité, livraison rapide. Conforme à mes attentes.",
+    "output": "Merci beaucoup pour votre retour positif ! Nous sommes ravis que le produit vous satisfasse.",
+    "sentiment": "positive",
+    "rating": 5
+  },
+  {
+    "input": "Avis client: Très bon produit, bien emballé. Service client réactif.",
+    "output": "Merci beaucoup pour votre retour positif ! Nous sommes ravis que le produit vous satisfasse.",
+    "sentiment": "positive",
+    "rating": 4
+  },
+  {
+    "input": "Avis client: Satisfait de cet achat. Produit solide et bien fini.",
+    "output": "Merci beaucoup pour votre retour positif ! Nous sommes ravis que le produit vous satisfasse.",
+    "sentiment": "positive",
+    "rating": 4
+  },
+  {
+    "input": "Avis client: Très déçu de cet achat. Qualité médiocre, ne correspond pas à la description.",
+    "output": "Nous sommes désolés que le produit n'ait pas répondu à vos attentes. Contactez notre service client.",
+    "sentiment": "negative",
+    "rating": 2
+  },
+  {
+    "input": "Avis client: Produit défectueux dès la première utilisation. Service client non réactif.",
+    "output": "Nous sommes désolés que le produit n'ait pas répondu à vos attentes. Contactez notre service client.",
+    "sentiment": "negative",
+    "rating": 1
+  },
+  {
+    "input": "Avis client: Mauvaise qualité, matériaux cheap. Photos trompeuses.",
+    "output": "Nous sommes désolés que le produit n'ait pas répondu à vos attentes. Contactez notre service client.",
+    "sentiment": "negative",
+    "rating": 1
+  },
+  {
+    "input": "Avis client: Pas terrible du tout. Livraison en retard et produit abîmé.",
+    "output": "Nous sommes désolés que le produit n'ait pas répondu à vos attentes. Contactez notre service client.",
+    "sentiment": "negative",
+    "rating": 2
+  },
+  {
+    "input": "Avis client: Produit correct, sans plus. Fait le travail mais rien d'exceptionnel.",
+    "output": "Merci pour votre retour. Nous prenons note de vos commentaires pour améliorer nos produits.",
+    "sentiment": "neutral",
+    "rating": 3
+  },
+  {
+    "input": "Avis client: Moyen, la qualité pourrait être mieux. Acceptable pour le prix.",
+    "output": "Merci pour votre retour. Nous prenons note de vos commentaires pour améliorer nos produits.",
+    "sentiment": "neutral",
+    "rating": 3
+  }
+]

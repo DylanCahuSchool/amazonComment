@@ -1,140 +1,277 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Test simple et robuste pour CI/CD
-Ne dépend que des modules de base pour éviter les conflits de version
+Tests unifiés pour l'architecture refactorisée
+Suite de tests complète et moderne
 """
+
 import sys
-import os
+import unittest
+from pathlib import Path
 
-# Ajouter le répertoire parent au PYTHONPATH pour les imports
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir)
+# Ajout du chemin du projet au PYTHONPATH
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-def test_imports():
-    """Test que tous les modules s'importent correctement"""
-    try:
-        # Test imports critiques sans charger les modèles ML
-        import fastapi
-        print("✅ FastAPI disponible")
-        
-        import pydantic
-        print("✅ Pydantic disponible")
-        
-        # Test de structure de fichier
-        import os
-        required_files = ['main.py', 'generate_response.py', 'data_processing.py']
-        for file in required_files:
-            if os.path.exists(file):
-                print(f"✅ Fichier {file} présent")
-            else:
-                print(f"❌ Fichier {file} manquant")
-                return False
-        
-        return True
-    except Exception as e:
-        print(f"❌ Erreur import: {e}")
-        return False
+from utils.common import (
+    deps, print_status, print_section, 
+    validate_text_input, validate_rating,
+    safe_json_dump, safe_json_load
+)
+from core.data_manager import AmazonDataProcessor, TrainingDataConverter
+from core.training_manager import TrainingOrchestrator
+import tempfile
+import json
 
-def test_functions():
-    """Test des fonctions de base sans ML"""
-    try:
-        # Tests simples sans charger les modèles lourds
-        import re
-        import string
-        
-        # Test nettoyage basique
-        def simple_clean(text):
-            text = re.sub(r'http\S+', '', text)
-            text = re.sub(r'[^\w\s]', '', text)
-            return text.strip().lower()
-        
-        result = simple_clean("Produit fantastique! 😊 http://test.com")
-        assert len(result) > 0
-        print(f"✅ Nettoyage texte basique: '{result}'")
-        
-        # Test logique sentiment basique
-        def simple_sentiment(score):
-            if score >= 4:
-                return "positive"
-            elif score <= 2:
-                return "negative"
-            else:
-                return "neutre"
-        
-        assert simple_sentiment(5) == "positive"
-        assert simple_sentiment(1) == "negative"
-        print("✅ Logique sentiment: OK")
-        
-        return True
-    except Exception as e:
-        print(f"❌ Erreur tests fonctions: {e}")
-        return False
-
-def test_api_structure():
-    """Test de configuration basique"""
-    try:
-        # Tests de configuration et structure sans imports lourds
-        import os
-        
-        # Test variables d'environnement
-        config_found = False
-        try:
-            from config.settings import APIConfig
-            config_found = True
-            print("✅ Configuration trouvée")
-        except:
-            print("⚠️ Configuration non trouvée (OK en CI)")
-        
-        # Test requirements
-        if os.path.exists('requirements.txt'):
-            print("✅ requirements.txt présent")
-        
-        if os.path.exists('requirements-light.txt'):
-            print("✅ requirements-light.txt présent")
-        
-        return True
-    except Exception as e:
-        print(f"❌ Erreur structure: {e}")
-        return False
-
-def main():
-    """Exécute tous les tests simples"""
-    print("🧪 Tests simples pour CI/CD")
-    print("=" * 40)
+class TestUtilsCommon(unittest.TestCase):
+    """Tests pour les utilitaires communs"""
     
-    tests = [
-        ("Imports des modules", test_imports),
-        ("Fonctions de base", test_functions), 
-        ("Structure API", test_api_structure)
+    def test_conditional_imports(self):
+        """Test de la détection des imports conditionnels"""
+        status = deps.get_status()
+        self.assertIsInstance(status, dict)
+        self.assertIn('torch', status)
+        self.assertIn('transformers', status)
+    
+    def test_text_validation(self):
+        """Test de la validation de texte"""
+        # Texte valide
+        valid, msg = validate_text_input("Texte de test valide")
+        self.assertTrue(valid)
+        
+        # Texte trop court
+        invalid, msg = validate_text_input("")
+        self.assertFalse(invalid)
+        
+        # Texte trop long
+        long_text = "a" * 3000
+        invalid, msg = validate_text_input(long_text)
+        self.assertFalse(invalid)
+    
+    def test_rating_validation(self):
+        """Test de la validation des notes"""
+        # Note valide
+        valid, msg = validate_rating(4)
+        self.assertTrue(valid)
+        
+        # Note invalide
+        invalid, msg = validate_rating(10)
+        self.assertFalse(invalid)
+
+class TestDataManager(unittest.TestCase):
+    """Tests pour le gestionnaire de données"""
+    
+    def setUp(self):
+        self.processor = AmazonDataProcessor()
+        self.converter = TrainingDataConverter()
+    
+    def test_synthetic_data_creation(self):
+        """Test de la création de données synthétiques"""
+        data = self.processor.create_synthetic_data()
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0)
+        
+        # Vérifier la structure
+        first_item = data[0]
+        self.assertIn("review_text", first_item)
+        self.assertIn("rating", first_item)
+        self.assertIn("source", first_item)
+    
+    def test_training_data_preparation(self):
+        """Test de la préparation des données d'entraînement"""
+        # Données de test
+        test_reviews = [
+            {"review_text": "Excellent produit!", "rating": 5, "source": "test"},
+            {"review_text": "Très déçu", "rating": 1, "source": "test"}
+        ]
+        
+        training_data = self.processor.prepare_training_data(test_reviews)
+        self.assertIsInstance(training_data, list)
+        self.assertEqual(len(training_data), 2)
+        
+        # Vérifier la structure
+        first_item = training_data[0]
+        self.assertIn("input", first_item)
+        self.assertIn("output", first_item)
+        self.assertIn("sentiment", first_item)
+    
+    def test_text_format_conversion(self):
+        """Test de la conversion au format texte"""
+        test_data = [
+            {
+                "input": "Avis client: Test",
+                "output": "Merci pour votre retour",
+                "sentiment": "neutral",
+                "rating": 3
+            }
+        ]
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Changer temporairement le répertoire de données
+            original_data_dir = self.converter.data_dir
+            self.converter.data_dir = Path(temp_dir)
+            
+            try:
+                result = self.converter.to_text_format(test_data)
+                self.assertIsNotNone(result)
+                self.assertTrue(Path(result).exists())
+                
+                # Vérifier le contenu
+                with open(result, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    self.assertIn("Avis client: Test", content)
+                    self.assertIn("<|endoftext|>", content)
+                    
+            finally:
+                # Restaurer le répertoire original
+                self.converter.data_dir = original_data_dir
+
+class TestTrainingManager(unittest.TestCase):
+    """Tests pour le gestionnaire d'entraînement"""
+    
+    def setUp(self):
+        self.orchestrator = TrainingOrchestrator()
+    
+    def test_demo_pipeline(self):
+        """Test du pipeline en mode démo"""
+        results = self.orchestrator.run_complete_pipeline(
+            force_mode="demo",
+            data_limit=5
+        )
+        
+        self.assertIsInstance(results, dict)
+        self.assertIn("success", results)
+        self.assertIn("mode", results)
+        self.assertEqual(results["mode"], "demo")
+    
+    def test_orchestrator_configuration(self):
+        """Test de la configuration de l'orchestrateur"""
+        # Vérifier que tous les composants sont initialisés
+        self.assertIsNotNone(self.orchestrator.trainer)
+        self.assertIsNotNone(self.orchestrator.simulator)
+        self.assertIsNotNone(self.orchestrator.data_processor)
+        self.assertIsNotNone(self.orchestrator.data_converter)
+
+class TestJsonOperations(unittest.TestCase):
+    """Tests pour les opérations JSON sécurisées"""
+    
+    def test_safe_json_operations(self):
+        """Test des opérations JSON sécurisées"""
+        test_data = {"test": "data", "number": 42}
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            temp_file = f.name
+        
+        try:
+            # Test sauvegarde
+            success, msg = safe_json_dump(test_data, temp_file)
+            self.assertTrue(success)
+            
+            # Test chargement
+            success, loaded_data = safe_json_load(temp_file)
+            self.assertTrue(success)
+            self.assertEqual(loaded_data, test_data)
+            
+        finally:
+            # Nettoyage
+            Path(temp_file).unlink(missing_ok=True)
+
+def run_comprehensive_tests():
+    """Lance tous les tests avec un rapport détaillé"""
+    print_section("Tests unitaires de l'architecture refactorisée")
+    
+    # Configuration du test runner
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    
+    # Ajout des classes de test
+    test_classes = [
+        TestUtilsCommon,
+        TestDataManager,
+        TestTrainingManager,
+        TestJsonOperations
     ]
     
-    passed = 0
-    failed = 0
+    for test_class in test_classes:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
     
-    for name, test_func in tests:
-        print(f"\n📋 Test: {name}")
-        try:
-            if test_func():
-                passed += 1
-                print(f"✅ {name}: RÉUSSI")
-            else:
-                failed += 1
-                print(f"❌ {name}: ÉCHOUÉ")
-        except Exception as e:
-            failed += 1
-            print(f"❌ {name}: ERREUR - {e}")
+    # Lancement des tests
+    runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
+    result = runner.run(suite)
     
-    print("\n" + "=" * 40)
-    print(f"📊 Résultats: {passed} réussis, {failed} échoués")
+    # Résumé
+    print_section("Résumé des tests")
+    print_status(f"Tests exécutés: {result.testsRun}")
+    print_status(f"Échecs: {len(result.failures)}")
+    print_status(f"Erreurs: {len(result.errors)}")
     
-    if failed == 0:
-        print("🎉 Tous les tests sont passés!")
-        return True
+    if result.failures:
+        print_status("ÉCHECS:", 'error')
+        for test, traceback in result.failures:
+            print_status(f"  - {test}", 'error')
+    
+    if result.errors:
+        print_status("ERREURS:", 'error')
+        for test, traceback in result.errors:
+            print_status(f"  - {test}", 'error')
+    
+    success = len(result.failures) == 0 and len(result.errors) == 0
+    
+    if success:
+        print_status("Tous les tests sont passés!", 'success')
     else:
-        print("💥 Certains tests ont échoué")
+        print_status("Certains tests ont échoué", 'warning')
+    
+    return success
+
+def quick_integration_test():
+    """Test d'intégration rapide"""
+    print_section("Test d'intégration rapide")
+    
+    try:
+        # Test du pipeline complet en mode démo
+        print_status("Test du pipeline complet...", 'process')
+        orchestrator = TrainingOrchestrator()
+        results = orchestrator.run_complete_pipeline(force_mode="demo", data_limit=3)
+        
+        if results["success"]:
+            print_status("Pipeline d'intégration: OK", 'success')
+            return True
+        else:
+            print_status("Pipeline d'intégration: ÉCHEC", 'error')
+            return False
+    
+    except Exception as e:
+        print_status(f"Erreur test d'intégration: {e}", 'error')
         return False
 
 if __name__ == "__main__":
-    success = main()
-    exit(0 if success else 1)
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Tests pour l'architecture refactorisée")
+    parser.add_argument('--quick', action='store_true', help='Test d\'intégration rapide seulement')
+    parser.add_argument('--unit', action='store_true', help='Tests unitaires seulement')
+    
+    args = parser.parse_args()
+    
+    overall_success = True
+    
+    if args.quick:
+        success = quick_integration_test()
+        overall_success = overall_success and success
+    elif args.unit:
+        success = run_comprehensive_tests()
+        overall_success = overall_success and success
+    else:
+        # Par défaut, lancer les deux
+        unit_success = run_comprehensive_tests()
+        integration_success = quick_integration_test()
+        overall_success = unit_success and integration_success
+    
+    if overall_success:
+        print_status("🎉 Tous les tests sont passés!", 'success')
+        sys.exit(0)
+    else:
+        print_status("⚠️ Certains tests ont échoué", 'warning')
+        sys.exit(1)

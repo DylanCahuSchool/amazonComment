@@ -13,21 +13,55 @@ tokenizer = None
 model = None
 gen_pipe = None
 
+# Chemin vers le modèle entraîné
+TRAINED_MODEL_PATH = "./models/amazon_trained"
+
+def load_trained_model():
+    """Charge le modèle entraîné Amazon si disponible"""
+    global tokenizer, model, gen_pipe
+    
+    from pathlib import Path
+    
+    if Path(TRAINED_MODEL_PATH).exists():
+        try:
+            from transformers import GPT2Tokenizer, GPT2LMHeadModel
+            
+            print(f"🎯 Chargement du modèle entraîné Amazon: {TRAINED_MODEL_PATH}")
+            
+            tokenizer = GPT2Tokenizer.from_pretrained(TRAINED_MODEL_PATH)
+            model = GPT2LMHeadModel.from_pretrained(TRAINED_MODEL_PATH)
+            
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+            
+            print("✅ Modèle Amazon entraîné chargé avec succès!")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erreur chargement modèle entraîné: {e}")
+            return False
+    
+    return False
+
 def load_ai_model():
     """
-    Charge le modèle IA avec des fallbacks robustes
-    Retourne True si un modèle a été chargé, False sinon
+    Charge le modèle IA avec priorité au modèle entraîné
     """
     global tokenizer, model, gen_pipe
     
     if not AIConfig.ENABLE_AI_MODEL:
         print("💬 Mode fallback activé par configuration")
         return False
+    
+    # Priorité 1: Modèle entraîné Amazon
+    if load_trained_model():
+        return True
         
+    # Priorité 2: Modèles pré-entraînés
     try:
         from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
         
-        print("🤖 Tentative de chargement des modèles IA...")
+        print("🤖 Tentative de chargement des modèles pré-entraînés...")
         
         for model_name in AIConfig.FALLBACK_MODELS:
             try:
@@ -92,42 +126,53 @@ def generate_fallback_response(texte: str, sentiment: str) -> str:
 
 def generate_ai_response(texte: str, sentiment: str) -> str:
     """
-    Génère une réponse avec le modèle IA
-    
-    Args:
-        texte: Le texte du client
-        sentiment: Le sentiment détecté
-    
-    Returns:
-        Une réponse générée par IA ou fallback en cas d'erreur
+    Génère une réponse avec le modèle IA (priorité au modèle entraîné)
     """
-    if gen_pipe is None:
+    global tokenizer, model, gen_pipe
+    
+    if tokenizer is None or model is None:
         return generate_fallback_response(texte, sentiment)
     
     try:
-        # Prompt optimisé pour les modèles génériques
-        context = f"Message client: {texte[:200]} - Réponse service client:"
+        # Format d'entrée
+        input_text = f"Avis client: {texte}"
         
-        result = gen_pipe(
-            context,
-            max_length=len(context) + 80,
-            num_return_sequences=1,
-            temperature=0.6
-        )
+        # Tokenisation
+        inputs = tokenizer.encode(input_text, return_tensors="pt")
         
-        generated = result[0]["generated_text"]
+        # Génération avec le modèle
+        import torch
+        with torch.no_grad():
+            outputs = model.generate(
+                inputs,
+                max_length=inputs.shape[1] + 60,
+                temperature=0.7,
+                do_sample=True,
+                pad_token_id=tokenizer.eos_token_id,
+                num_return_sequences=1,
+                repetition_penalty=1.2
+            )
         
-        # Extraire la réponse générée
-        if context in generated:
-            response = generated.replace(context, "").strip()
-            if len(response) > 20:  # Réponse valide
-                return response[:300]  # Limiter la taille
+        # Décoder la réponse
+        generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        
+        # Extraire la partie réponse
+        response = generated_text[len(input_text):].strip()
+        
+        # Nettoyer et valider
+        if len(response) > 15 and len(response) < 300:
+            from pathlib import Path
+            if Path(TRAINED_MODEL_PATH).exists():
+                print("🎯 Réponse du modèle entraîné Amazon")
+            else:
+                print("🤖 Réponse du modèle pré-entraîné")
+            return response
+        else:
+            return generate_fallback_response(texte, sentiment)
     
     except Exception as e:
         print(f"⚠️ Erreur génération IA: {e}")
-    
-    # Fallback en cas d'erreur IA
-    return generate_fallback_response(texte, sentiment)
+        return generate_fallback_response(texte, sentiment)
 
 def generer_reponse(texte: str, sentiment: str = "negative") -> str:
     """
